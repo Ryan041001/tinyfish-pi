@@ -1,25 +1,54 @@
 # tinyfish-pi
 
-TinyFish web search and page reading for **Pi's built-in MCP**.
+[![CI](https://github.com/Ryan041001/tinyfish-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/Ryan041001/tinyfish-pi/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-One small extension, one skill, zero runtime dependencies. No TinyFish SDK, CLI,
-MCP adapter, custom tools, build step, or background process of its own.
-Unofficial; not affiliated with TinyFish.
+Read-only TinyFish web search and page extraction for the built-in MCP client in
+[Pi](https://pi.dev). The package provides one extension and one skill, with no runtime
+dependencies, SDK, CLI, MCP adapter, build step, or background process.
 
-## Install
+This is an unofficial integration and is not affiliated with TinyFish.
 
-Requires **Pi 1.4.0+** with its built-in MCP enabled.
+## Overview
+
+`tinyfish-pi` connects Pi to the official TinyFish MCP endpoint and exposes two capabilities:
+
+| Capability | Upstream tool | Description |
+| --- | --- | --- |
+| Web search | `search` | Ranked results with titles, snippets, and URLs |
+| Page extraction | `fetch_content` | Rendered page content as Markdown, HTML, or JSON |
+
+Tool discovery, transport, cancellation, error handling, and output truncation are delegated to
+Pi's built-in MCP client. The extension only supplies connection metadata and an exposure policy.
+
+## Requirements
+
+- Pi 1.4.0 or later, with the built-in MCP client enabled.
+- A TinyFish API key, created at <https://agent.tinyfish.ai/api-keys>.
+
+An extension such as `pi-mcp-adapter` replaces Pi's built-in MCP implementation. This package is
+designed for the built-in client and does not require or support the adapter.
+
+## Installation
 
 ```sh
 pi install git:github.com/Ryan041001/tinyfish-pi
 ```
 
-Create an API key at <https://agent.tinyfish.ai/api-keys> and make
-`TINYFISH_API_KEY` available to the process that starts Pi. For a temporary
-terminal session, enter it without echoing it or adding its value to shell history:
+To pin a specific release:
 
 ```sh
-# bash or zsh
+pi install git:github.com/Ryan041001/tinyfish-pi@v0.1.1
+```
+
+## Authentication
+
+The extension reads `TINYFISH_API_KEY` from the environment of the process that starts Pi. The
+credential is not stored by the package.
+
+For a temporary shell session, enter the key without echoing it:
+
+```sh
 printf 'TinyFish API key: '
 read -rs TINYFISH_API_KEY
 printf '\n'
@@ -27,52 +56,67 @@ export TINYFISH_API_KEY
 pi
 ```
 
-For persistent use, inject the variable through your preferred secret manager.
-Do not put the key in chat, this repository, or a committed config file.
+For persistent use, inject the variable through a secret manager or the equivalent mechanism for
+your platform. Do not commit the key, paste it into a chat, or write it to a configuration file
+that is stored in plain text.
 
-Already running Pi? Restart after setting the environment variable. Use `/mcp`
-to inspect the `tinyfish` connection, then ask Pi to search or read a URL.
-The `tinyfish-web` skill loads when relevant; invoke it explicitly with
-`/skill:tinyfish-web`.
+A nonblank key enables the connection. If the variable is missing or blank, the extension
+registers a disabled server and Pi makes no TinyFish connection.
 
-## Deliberately small
+## Usage
 
-- Calls the official `https://agent.tinyfish.ai/mcp` endpoint over HTTPS.
-- Exposes **only `search` and `fetch_content`**, through native codemode discovery.
-- Defaults every other tool, including future additions, to `hidden`.
-- Leaves tool schemas, transport, cancellation, errors, and output handling to Pi.
-- Uses a 150-second request timeout for rendered pages.
-- Adds no always-declared TinyFish tool schemas; Pi lists a short server summary.
-- Keeps only an environment-variable reference in the registered header config.
-- Without a nonblank key, registers a disabled server and makes no TinyFish connection.
+After installing the package and restarting Pi with the key available, ask Pi to search the web or
+read a URL. The `tinyfish-web` skill is loaded when the task calls for web access, and can be
+invoked explicitly:
 
-The integration currently targets the upstream tool names `search` and
-`fetch_content`. If they change, it fails closed rather than exposing more tools.
+```text
+/skill:tinyfish-web
+```
 
-TinyFish currently advertises search and fetch as free; its pricing and usage
-limits still apply. Hiding paid tools is a client-side exposure policy, **not**
-a sandbox, an account spending cap, or a guarantee about server-side behavior.
-Pi and user-installed code still have the permissions of the local user.
+Inspect the connection and the effective tool exposure with `/mcp` inside a Pi session.
+
+## Scope and design
+
+- Uses the official `https://agent.tinyfish.ai/mcp` endpoint over HTTPS.
+- Exposes only `search` and `fetch_content`, reached through Pi's native codemode discovery.
+- Sets the server exposure to `hidden` and enables the two read tools individually, so other
+  tools — including tools added upstream in the future — remain unreachable.
+- Applies a 150-second request timeout for rendered pages.
+- Declares no always-visible TinyFish tool schemas; Pi lists only a short server summary.
+- Keeps the API key as an environment-variable reference in the registered header configuration.
+- Requires no build step and adds no runtime dependencies.
+
+The exposure policy targets the current upstream tool names `search` and `fetch_content`. If
+TinyFish renames or removes either tool, the integration fails closed rather than exposing a
+broader tool set.
+
+## Security considerations
+
+Hiding tools that incur charges is a client-side exposure policy. It is **not** a sandbox, an
+account-level spending limit, or a guarantee about server-side behavior. TinyFish pricing and
+usage limits continue to apply. Pi and any user-installed code retain the permissions of the local
+user.
+
+Page content, snippets, and links returned by TinyFish are untrusted input. The bundled skill
+instructs the model to treat them as data rather than instructions, and to avoid including
+credentials or private local content in requests.
 
 ## Troubleshooting
 
-- **Disabled:** set `TINYFISH_API_KEY` before starting Pi; restart.
-- **Unauthorized / OAuth wording:** verify the API key. This package uses
-  `X-API-Key`, not interactive OAuth.
-- **No server entry:** confirm the package and Pi's built-in MCP are enabled.
-  An extension such as `pi-mcp-adapter` can replace the built-in implementation;
-  this package is designed for the built-in, not that replacement.
-- **Unexpected settings/tools:** a native `mcp.json` server named `tinyfish`
-  takes precedence over this registration. Inspect `/mcp`; remove or rename the
-  conflicting entry if you want this package's two-tool policy.
-- **`pi mcp list` does not show it:** expected. Shell MCP commands do not load
-  extensions; inspect `/mcp` in a running Pi session instead.
+| Symptom | Cause and resolution |
+| --- | --- |
+| TinyFish tools are unavailable | `TINYFISH_API_KEY` is missing or blank. Set it and restart Pi. |
+| Authorization error, including OAuth wording | Verify the API key. This package authenticates with `X-API-Key`, not interactive OAuth. |
+| No `tinyfish` entry in `/mcp` | Confirm the package is installed and Pi's built-in MCP client is enabled. |
+| Unexpected tools or settings | A `mcp.json` server named `tinyfish` takes precedence over this registration. Inspect `/mcp` and remove or rename the conflicting entry to apply the two-tool policy. |
+| `pi mcp list` does not show the server | Expected. Shell MCP commands do not load extensions; inspect `/mcp` in a running Pi session. |
 
-This package does not read local files, load `.env`, or add telemetry. Queries
-and requested URLs go to TinyFish; see its
-[privacy policy](https://www.tinyfish.ai/privacy-policy).
+## Privacy
 
-## Develop
+The package does not read local files, load `.env` files, or add telemetry. Queries and requested
+URLs are sent to TinyFish. See the [TinyFish privacy policy](https://www.tinyfish.ai/privacy-policy).
+
+## Development
 
 ```sh
 npm ci
@@ -81,15 +125,21 @@ npm pack --dry-run
 pi -e .
 ```
 
-No build step. The development dependency on Pi is for type checking and native
-integration tests, not bundled runtime code. Tests use fake credentials and an
-in-memory MCP transport: no API key, network calls, or model requests.
+The development dependency on Pi is used for type checking and native integration tests; it is not
+included in runtime code. The test suite uses a fake API key and an in-memory MCP transport, so it
+requires no credentials, network access, or model requests. Live TinyFish requests require a real
+key and are separate from the offline suite.
 
-Live TinyFish search/fetch needs a real key and is separate from offline tests.
-To remove the installed package:
+Verification status: the package passed type checking and eight offline tests on Node.js 22.19.0
+and 24, and was exercised against the official TinyFish MCP endpoint on 2026-10-23. Both `search`
+and `fetch_content` completed successfully.
+
+To remove the package:
 
 ```sh
 pi remove git:github.com/Ryan041001/tinyfish-pi
 ```
 
-MIT.
+## License
+
+MIT. See [LICENSE](LICENSE).
