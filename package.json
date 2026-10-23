@@ -1,0 +1,53 @@
+{
+  "name": "pi-tinyfish-native",
+  "version": "0.1.0",
+  "description": "Read-only TinyFish search and page reading through Pi's built-in MCP. No SDK, CLI, or adapter.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ryan Shen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ryan041001/pi-tinyfish-native.git"
+  },
+  "homepage": "https://github.com/Ryan041001/pi-tinyfish-native#readme",
+  "bugs": {
+    "url": "https://github.com/Ryan041001/pi-tinyfish-native/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "tinyfish",
+    "mcp",
+    "web-search"
+  ],
+  "files": [
+    "extensions",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/tinyfish.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.4.0",
+    "@types/node": "^22.19.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test"
+  }
+}
