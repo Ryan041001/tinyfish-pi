@@ -1,17 +1,17 @@
 {
-  "name": "pi-tinyfish-native",
-  "version": "0.1.0",
+  "name": "tinyfish-pi",
+  "version": "0.1.1",
   "description": "Read-only TinyFish search and page reading through Pi's built-in MCP. No SDK, CLI, or adapter.",
   "type": "module",
   "license": "MIT",
   "author": "Ryan Shen",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ryan041001/pi-tinyfish-native.git"
+    "url": "git+https://github.com/Ryan041001/tinyfish-pi.git"
   },
-  "homepage": "https://github.com/Ryan041001/pi-tinyfish-native#readme",
+  "homepage": "https://github.com/Ryan041001/tinyfish-pi#readme",
   "bugs": {
-    "url": "https://github.com/Ryan041001/pi-tinyfish-native/issues"
+    "url": "https://github.com/Ryan041001/tinyfish-pi/issues"
   },
   "keywords": [
     "pi-package",

@@ -1,4 +1,4 @@
-# pi-tinyfish-native
+# tinyfish-pi
 
 TinyFish web search and page reading for **Pi's built-in MCP**.
 
@@ -11,7 +11,7 @@ Unofficial; not affiliated with TinyFish.
 Requires **Pi 1.4.0+** with its built-in MCP enabled.
 
 ```sh
-pi install git:github.com/Ryan041001/pi-tinyfish-native
+pi install git:github.com/Ryan041001/tinyfish-pi
 ```
 
 Create an API key at <https://agent.tinyfish.ai/api-keys> and make
@@ -89,7 +89,7 @@ Live TinyFish search/fetch needs a real key and is separate from offline tests.
 To remove the installed package:
 
 ```sh
-pi remove git:github.com/Ryan041001/pi-tinyfish-native
+pi remove git:github.com/Ryan041001/tinyfish-pi
 ```
 
 MIT.

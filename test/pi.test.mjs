@@ -82,7 +82,7 @@ function fixture() {
 }
 
 async function setup(t, key) {
-  const dir = await mkdtemp(join(tmpdir(), "pi-tinyfish-native-"));
+  const dir = await mkdtemp(join(tmpdir(), "tinyfish-pi-"));
   const previous = process.env.TINYFISH_API_KEY;
   if (key === undefined) delete process.env.TINYFISH_API_KEY;
   else process.env.TINYFISH_API_KEY = key;
